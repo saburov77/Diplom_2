@@ -37,14 +37,14 @@ public class ChangingUserDataTest {
     }
 
     @Test
-    @DisplayName("Изменение данных пользователя с авторизацией")
-    public void changingUserDataWithAuthTest() {
+    @DisplayName("Изменение Email пользователя с авторизацией")
+    public void changingEmailWithAuthTest() {
         //Авторизация пользователя
         UserData userData = new UserData(email, password);
         Response response = userApi.loginUser(userData);
         accessToken = response.body().as(ResponseUserData.class).getAccessToken();
         //Изменение данных пользователя
-        UserData newUserData = new UserData("i"+email, password+"1", name+"5");
+        UserData newUserData = new UserData("i"+email, password, name);
         Response newResponse = userApi.changingUser(newUserData, accessToken);
         newResponse.then().assertThat().log().all()
                 .statusCode(HttpStatus.SC_OK)
@@ -53,6 +53,21 @@ public class ChangingUserDataTest {
         String expectedEmail = newUserData.getEmail();
         String actualEmail = newResponse.body().as(ResponseUserData.class).getUser().getEmail();
         Assert.assertEquals(expectedEmail, actualEmail);
+    }
+
+    @Test
+    @DisplayName("Изменение Name пользователя с авторизацией")
+    public void changingNameWithAuthTest() {
+        //Авторизация пользователя
+        UserData userData = new UserData(email, password);
+        Response response = userApi.loginUser(userData);
+        accessToken = response.body().as(ResponseUserData.class).getAccessToken();
+        //Изменение данных пользователя
+        UserData newUserData = new UserData(email, password, name+"5");
+        Response newResponse = userApi.changingUser(newUserData, accessToken);
+        newResponse.then().assertThat().log().all()
+                .statusCode(HttpStatus.SC_OK)
+                .body("success", is(true));
 
         String expectedName = newUserData.getName();
         String actualName = newResponse.body().as(ResponseUserData.class).getUser().getName();
@@ -60,10 +75,26 @@ public class ChangingUserDataTest {
     }
 
     @Test
-    @DisplayName("Изменение данных пользователя без авторизации")
-    public void changingUserDataWithoutAuthTest() {
+    @DisplayName("Изменение Email пользователя без авторизации")
+    public void changingEmailWithoutAuthTest() {
         //Изменение данных пользователя
-        UserData newUserData = new UserData("im"+email, password+"3", name+"7");
+        UserData newUserData = new UserData("im"+email, password, name);
+        Response newResponse = userApi.changingUser(newUserData, "accessToken");
+        newResponse.then().assertThat().log().all()
+                .statusCode(HttpStatus.SC_UNAUTHORIZED)
+                .body("success", is(false));
+
+        String expectedMessage = "You should be authorised";
+        String actualMessage = newResponse.body().as(ForbiddenResponseUserData.class).getMessage();
+        Assert.assertEquals(expectedMessage, actualMessage);
+
+    }
+
+    @Test
+    @DisplayName("Изменение Name пользователя без авторизации")
+    public void changingNameWithoutAuthTest() {
+        //Изменение данных пользователя
+        UserData newUserData = new UserData(email, password, name+"1");
         Response newResponse = userApi.changingUser(newUserData, "accessToken");
         newResponse.then().assertThat().log().all()
                 .statusCode(HttpStatus.SC_UNAUTHORIZED)

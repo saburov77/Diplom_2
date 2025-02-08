@@ -64,9 +64,35 @@ public class CreateUserTest {
     }
 
     @Test
-    @DisplayName("Создать пользователя и не заполнить одно из обязательных поле")
+    @DisplayName("Создать пользователя и не заполнить поле email")
     public void createUserWithoutLoginTest() {
         UserData userData = new UserData("", password, name);
+        Response response = userApi.createUser(userData);
+        response.then().assertThat().log().all()
+                .statusCode(HttpStatus.SC_FORBIDDEN)
+                .body("success", is(false));
+        String actualMassage = response.body().as(ForbiddenResponseUserData.class).getMessage();
+        String expectedMassage = "Email, password and name are required fields";
+        Assert.assertEquals(expectedMassage, actualMassage);
+    }
+
+    @Test
+    @DisplayName("Создать пользователя и не заполнить поле password")
+    public void createUserWithoutPasswordTest() {
+        UserData userData = new UserData(email, "", name);
+        Response response = userApi.createUser(userData);
+        response.then().assertThat().log().all()
+                .statusCode(HttpStatus.SC_FORBIDDEN)
+                .body("success", is(false));
+        String actualMassage = response.body().as(ForbiddenResponseUserData.class).getMessage();
+        String expectedMassage = "Email, password and name are required fields";
+        Assert.assertEquals(expectedMassage, actualMassage);
+    }
+
+    @Test
+    @DisplayName("Создать пользователя и не заполнить поле name")
+    public void createUserWithoutNameTest() {
+        UserData userData = new UserData(email, password, "");
         Response response = userApi.createUser(userData);
         response.then().assertThat().log().all()
                 .statusCode(HttpStatus.SC_FORBIDDEN)
